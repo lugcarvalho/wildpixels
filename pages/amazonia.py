@@ -147,14 +147,12 @@ with col1:
     for selecionada in areasSelecionadas:
         area = selecionada
         print(area.nome+" SELECIONADA")
-        #area_id = areas.index(selecionada.nome)
-        #area = areas[area_id]
+
         print(area)
         if area.carregada != True:
             print(area.nome+" CARREGADA")
             area.carregada=True
             mapa.add_geojson(area.caminho,area.nome)
-            #area.carregada=True
             contador=contador+1
             if contador>10:
                 break
