@@ -2,6 +2,7 @@ import os
 import fiona
 import geopandas as gpd
 import streamlit as st
+import leafmap.deck, leafmap.foliumap as leafmap
 
 st.set_page_config(layout="wide")
 
@@ -34,19 +35,24 @@ def save_uploaded_file(file_content, file_name):
     return file_path
 
 
-def carrega_collection(file_path, backend):
+def carrega_collection(file_path, backend, container,layer_name):
+    print("--- entrou em carrega-collection ---")
+    width = 950
+    height = 600
+
     if file_path.lower().endswith(".kml"):
         fiona.drvsupport.supported_drivers["KML"] = "rw"
         gdf = gpd.read_file(file_path, driver="KML")
     else:
         gdf = gpd.read_file(file_path)
+        
     lon, lat = leafmap.gdf_centroid(gdf)
 
     if backend == "pydeck":
         column_names = gdf.columns.values.tolist()
         random_column = None
         with container:
-            random_color = st.checkbox("Apply random colors", True)
+            random_color = st.checkbox("Apply random colors", False)
             if random_color:
                 random_column = st.selectbox(
                     "Select a column to apply random colors", column_names
@@ -57,7 +63,7 @@ def carrega_collection(file_path, backend):
         st.pydeck_chart(m)
 
     else:
-        m = leafmap.Map(center=(lat, lon), draw_export=True)
+        m = leafmap.Map(center=(lat, lon), draw_export=False)
         m.add_gdf(gdf, layer_name=layer_name)
         # m.add_vector(file_path, layer_name=layer_name)
         if backend == "folium":
@@ -76,7 +82,7 @@ def app():
     with row1_col2:
 
         backend = st.selectbox(
-            "Select a plotting backend", ["folium", "kepler.gl", "pydeck"], index=2
+            "Select a plotting backend", ["folium", "kepler.gl", "pydeck"], index=0
         )
 
         if backend == "folium":
@@ -88,7 +94,7 @@ def app():
 
         url = st.text_input(
             "Enter a URL to a vector dataset",
-            "https://github.com/giswqs/streamlit-geospatial/raw/master/data/us_states.geojson",
+            "https://github.com/lugcarvalho/wildpixels/raw/master/assets/estradas-rurais/id_1873.geojson"
         )
 
         data = st.file_uploader(
@@ -107,7 +113,7 @@ def app():
 
             with row1_col1:
 
-                carrega_collection(file_path, backend)
+                carrega_collection(file_path, backend,container,layer_name)
 
                 # if file_path.lower().endswith(".kml"):
                 #     fiona.drvsupport.supported_drivers["KML"] = "rw"
