@@ -2,7 +2,7 @@ import streamlit as st
 import ee 
 import geemap.foliumap as geemap
 import geopandas as gpd
-import leafmap.foliumap as leafmap
+import leafmap.foliumap, leafmap.leafmap as leafmap
 from dataclasses import dataclass
 
 @dataclass
@@ -123,9 +123,9 @@ with col1:
     #     if contador>10:
     #         break
 
-
-    mapa.add_geojson("assets/complementares/amazonia-legal.geojson","Amazônia Legal")
-    mapa.add_geojson("assets/complementares/UFs.geojson","UFs")
+    layer_viz = {'palette':['00FFFF']}
+    mapa.add_geojson("assets/complementares/amazonia-legal.geojson","Amazônia Legal",fill_color='yellow', info_mode="on_click")
+    mapa.add_geojson("assets/complementares/UFs.geojson","UFs",color="brown", info_mode="on_hover")
   
 
 areasSelecionadas = []
@@ -144,15 +144,16 @@ for feature in features:
     #print(areasSelecionadas)
         
 with col1:
+
     for selecionada in areasSelecionadas:
         area = selecionada
         print(area.nome+" SELECIONADA")
-
+        
         print(area)
         if area.carregada != True:
             print(area.nome+" CARREGADA")
             area.carregada=True
-            mapa.add_geojson(area.caminho,area.nome)
+            mapa.add_geojson(area.caminho,area.nome,fill_color=area.cor, opacity="0.5", color=area.cor, info_mode="on_hover")
             contador=contador+1
             if contador>10:
                 break
@@ -164,14 +165,13 @@ with col1:
 
     mapa.to_streamlit(950,  600)
 
-
-
-
-
-
-
-
-
-
-
-
+    mapa2 = leafmap.split_map(
+    left_layer="SATELLITE",
+    right_layer="HYBRID",
+    left_label="2001",
+    right_label="2016",
+    label_position="bottom",
+    center=[-6, -62],
+    zoom=5,
+    )
+    mapa2.to_streamlit(950,  600)

@@ -5,7 +5,7 @@ import geemap.foliumap as geemap
 # Get an NLCD image by year.
 def getNLCD(year):
     # Import the NLCD collection.
-    dataset = ee.ImageCollection("USGS/NLCD_RELEASES/2019_REL/NLCD")
+    dataset = ee.ImageCollection("projects/planet-nicfi/assets/basemaps/americas")
 
     # Filter the collection by year.
     nlcd = dataset.filter(ee.Filter.eq("system:index", year)).first()
@@ -21,7 +21,7 @@ st.header("National Land Cover Database (NLCD)")
 row1_col1, row1_col2 = st.columns([3, 1])
 
 # Create an interactive map
-Map = geemap.Map(center=[40, -100], zoom=4)
+Map = geemap.Map(center=[-6, -62], zoom=4)
 
 # Select the seven NLCD epochs after 2000.
 years = ["2001", "2004", "2006", "2008", "2011", "2013", "2016", "2019"]
