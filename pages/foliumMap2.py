@@ -1,6 +1,7 @@
 import streamlit as st
 from streamlit_folium import st_folium, folium_static
 import folium
+import folium.features
 import requests
 from dataclasses import dataclass
 import geemap.foliumap as geemap
@@ -12,6 +13,7 @@ class Area:
     cor: str = "purple"
     carregada: bool = False
 
+st.set_page_config(layout="wide")
 
 container = st.container()
 
@@ -60,20 +62,24 @@ if 'areas' not in st.session_state:
 
 areas = st.session_state.areas
 
-st.title("Estradas rurais na Amazônia")
+if "feature_group" not in st.session_state:
+    st.session_state["feature_group"] = None
 
 def app():
     areasSelecionadas = []
     areasCarregadas = []
+    arrayFG = []
 
     options = list(geemap.basemaps.keys())
     index = options.index("SATELLITE")
     basemap = st.sidebar.selectbox("Select a basemap:", options, index)
 
-    features = st.sidebar.multiselect("Selecione as áreas:", areas, None, format_func=lambda area:area.nome, key=None, help=None, max_selections=318, placeholder="Selecione as áreas")
+    features = st.sidebar.multiselect("Selecione as áreas:", areas, None, format_func=lambda area:area.nome, key=None, help=None, max_selections=30, placeholder="Selecione as áreas")
     #st.write('selecionadas: ', features)
     for feature in features:
         areasSelecionadas.append(feature)
+
+    st.title("Estradas rurais na Amazônia")
 
     m = folium.Map([-6,-62], zoom_start=5,width=900)
 
@@ -85,7 +91,12 @@ def app():
             if area.carregada != True:
                 area.carregada=True
                 areasCarregadas.append(area)
-                folium.Choropleth(area.caminho, line_color=area.cor, name=area.nome).add_to(m)
+                #folium.Choropleth(area.caminho, line_color=area.cor, name=area.nome).add_to(m)
+                camada = folium.GeoJson(data=area.caminho, style_function=lambda x: {"color": area.cor},zoom_on_click=True)
+                fg = folium.FeatureGroup(name=area.nome, overlay=True)
+                fg.add_child(camada)
+                arrayFG.append(fg)
+                fg.add_to(m)
                 print("adicionou camada "+area.nome)
 
     
@@ -94,14 +105,12 @@ def app():
 
     areasSelecionadas = areasCarregadas  
     #print("--- areas carregadas >>>> ")
-    print(areasCarregadas)
+    #print(areasCarregadas)
     print("saiu do for")
-    #folium.TileLayer("Stamen Terrain")
-
+    #folium.TileLayer(basemap)
     folium.LayerControl().add_to(m)
-    #st_data = st_folium(m,width=900)
-    st_folium(m, width=900,returned_objects=[], return_on_hover=False, debug=True)
-    #st_data = folium_static(m, width=900)
-    #exit()
+ 
+    st_folium(m, width=900,returned_objects=[], return_on_hover=False,debug=True, feature_group_to_add=arrayFG)
+   
 
 app()
